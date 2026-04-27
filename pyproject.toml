@@ -6,7 +6,6 @@ build-backend = "hatchling.build"
 name = "open-mythos-edge"
 version = "0.1.0"
 description = "Edge-optimized OpenMythos Recurrent-Depth Transformer for ARM64/Jetson devices"
-readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.8"
 dependencies = ["torch>=2.0.0"]
