@@ -55,6 +55,37 @@ def test_estimate_memory_1b_is_plausible():
     assert 0.5 < mem_gb < 5.0, f"1B memory estimate {mem_gb} GB outside plausible band"
 
 
+def test_estimate_memory_counts_tied_embedding_once():
+    # Regression test: OpenMythosEdge ties the LM head to the embedding
+    # (`self.head.weight = self.embed.weight`), so estimate_memory() must count
+    # the embedding table exactly ONCE, not twice.
+    #
+    # With batch_size=0 the KV-cache term vanishes, so the estimate is purely
+    # weights. Holding every other field fixed and varying only vocab_size, the
+    # delta must equal (vocab_delta * dim * bytes_per_param) — counted once.
+    common = dict(
+        dim=128,
+        n_heads=4,
+        n_kv_heads=2,
+        max_seq_len=16,
+        max_loop_iters=2,
+        prelude_layers=1,
+        coda_layers=1,
+        n_experts=2,
+        n_shared_experts=1,
+        n_experts_per_tok=1,
+        expert_dim=64,
+        lora_rank=4,
+    )
+    small = MythosConfig(vocab_size=1000, **common)
+    big = MythosConfig(vocab_size=2000, **common)
+    delta_gb = big.estimate_memory(batch_size=0) - small.estimate_memory(batch_size=0)
+    # Tied head: embedding counted once -> delta is one table, not two.
+    once_bytes = (big.vocab_size - small.vocab_size) * small.dim * 4
+    assert abs(delta_gb - once_bytes / (1024**3)) < 1e-12
+    assert delta_gb * (1024**3) != 2 * once_bytes  # would be true if double-counted
+
+
 def test_estimate_memory_3b_is_plausible_and_larger():
     cfg_1b = mythos_1b_edge()
     cfg_3b = mythos_3b_edge()

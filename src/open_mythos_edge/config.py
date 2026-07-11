@@ -67,7 +67,9 @@ class MythosConfig:
             + self.prelude_layers * block_dense
             + block_recurrent
             + self.coda_layers * block_dense
-            + embed  # head shares embed weight, but counted once above
+            # The LM head is tied to the embedding (OpenMythosEdge sets
+            # head.weight = embed.weight), so the embedding table is counted
+            # exactly once above and must NOT be added again here.
         )
 
         # KV cache: K and V per layer per token
