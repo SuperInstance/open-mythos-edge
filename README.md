@@ -13,6 +13,6 @@ Edge-optimized Recurrent-Depth Transformer for ARM64/Jetson devices. Pure PyTorc
 ## Usage
 ```python
 from open_mythos_edge import OpenMythosEdge, mythos_1b_edge
-config = mythos_1b_edge()  # ~1.6 GB
+config = mythos_1b_edge()  # ~1.35 GB (weights + KV cache at fp32, see estimate_memory())
 model = OpenMythosEdge(config)
 ```
